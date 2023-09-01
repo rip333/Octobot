@@ -1,12 +1,13 @@
 
 using System.Text.RegularExpressions;
 using CerebroLibrary;
+using CerebroLibrary.Models;
 using CerebroLibrary.Search;
 
 namespace Telegram;
 public class PollingService
 {
-    private readonly ICerebroService _cerebroService; 
+    private readonly ICerebroService _cerebroService;
     private readonly IMessageService _messageService;
     private static int _lastUpdateId = 0;
 
@@ -15,7 +16,7 @@ public class PollingService
         _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
         _cerebroService = cerebroService ?? throw new ArgumentNullException(nameof(cerebroService));
     }
-    
+
 
     public async Task PollForUpdatesAsync()
     {
@@ -27,24 +28,20 @@ public class PollingService
             foreach (var result in updates.result)
             {
                 _lastUpdateId = result.update_id;
-                Console.WriteLine(result.message.text ?? "");
-                // Extracting text between double curly braces
-                var matches = Regex.Matches(result.message.text, @"{{(.*?)}}");
-                foreach (Match match in matches)
+                if (string.IsNullOrEmpty(result?.message?.text)) continue;
+                var message = result?.message?.text.Trim();;
+                Console.WriteLine(message ?? "");
+
+                var cards = await _cerebroService.SearchCards(Search.GetParametersFromText(message));
+                if (cards.Count() == 0) continue;
+                var topThree = cards.Where(x => x.Official).Take(3).ToList();
+                foreach (var card in topThree)
                 {
-                    if (match.Success && match.Groups.Count > 1)
-                    {
-                        string queryText = match.Groups[1].Value.Trim();
-                        var cards = await _cerebroService.SearchCards(Search.GetParametersFromText(queryText));
-                        if (cards.Count() == 0) continue;
-                        var card = cards.Where(x=> x.Official).FirstOrDefault();
-                        Console.WriteLine(card.Name);
-                        Console.WriteLine(card.Id);
-                        Console.WriteLine(card.ImageUrl());
-                        await _messageService.SendImageToChat(result.message.chat.id, card.ImageUrl());
-                    }
+                    Console.WriteLine(card.Name);
+                    Console.WriteLine(card.Id);
+                    Console.WriteLine(card.ImageUrl());
+                    await _messageService.SendImageToChat(result.message.chat.id, card.ImageUrl());
                 }
-                
             }
         }
         catch (Exception e)

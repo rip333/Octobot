@@ -30,10 +30,8 @@ namespace Telegram
                 { new StringContent(message), "caption"}
             };
 
-            var response = await _httpClient.PostAsync(requestUrl, formContent);
-            var responseString = await response.Content.ReadAsStringAsync();
-
-            Console.WriteLine(responseString); // To see the server's response
+            await _httpClient.PostAsync(requestUrl, formContent);
+            await Task.Delay(100);
         }
 
         public async Task SendStickerToChat(long chatId, string webpUrl, string message)
