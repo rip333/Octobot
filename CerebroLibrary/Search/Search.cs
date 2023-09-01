@@ -31,7 +31,10 @@ public static class Search {
                     result["cost"] = value;
                     break;
                 case "c":
-                    result["classification"] = value;
+                    result["classification"] = FuzzyMatcher.AspectFuzzyMatch(value);
+                    break;
+                case "m":
+                    result["set"] = value;
                     break;
                 default:
                     if (!result.ContainsKey("name"))

@@ -42,7 +42,7 @@ jobs:
         user: '${{ secrets.GCP_USER }}'
         command: |
           sudo systemctl stop octobot.service
-          cd /home/ripman3/telegram_bots/octobot/OctoBot
+          cd /home/ripman3/telegram_bots/octobot/Octobot
           git pull
           dotnet build
           dotnet publish -c Release -r linux-x64 --self-contained true
