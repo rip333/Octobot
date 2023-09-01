@@ -1,6 +1,8 @@
 
 using System.Text.RegularExpressions;
 using CerebroLibrary;
+using CerebroLibrary.Search;
+
 namespace Telegram;
 public class PollingService
 {
@@ -33,10 +35,11 @@ public class PollingService
                     if (match.Success && match.Groups.Count > 1)
                     {
                         string queryText = match.Groups[1].Value.Trim();
-                        var cards = await _cerebroService.SearchCards(new Dictionary<string, string> { { "name", queryText } });
+                        var cards = await _cerebroService.SearchCards(Search.GetParametersFromText(queryText));
                         if (cards.Count() == 0) continue;
-                        var card = cards.FirstOrDefault();
+                        var card = cards.Where(x=> x.Official).FirstOrDefault();
                         Console.WriteLine(card.Name);
+                        Console.WriteLine(card.Id);
                         Console.WriteLine(card.ImageUrl());
                         await _messageService.SendImageToChat(result.message.chat.id, card.ImageUrl());
                     }
